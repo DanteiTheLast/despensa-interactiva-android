@@ -9,8 +9,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -26,9 +37,12 @@ import com.example.despensacuartel.data.model.Category
 import com.example.despensacuartel.data.model.InventoryItem
 import com.example.despensacuartel.data.model.SectionColor
 import com.example.despensacuartel.ui.components.RadialWheel
+import com.example.despensacuartel.ui.screens.AddProductScreen
 import com.example.despensacuartel.ui.screens.CategoryScreen
 import com.example.despensacuartel.ui.screens.ProductDetailScreen
+import com.example.despensacuartel.ui.viewmodel.AddProductViewModel
 import com.example.despensacuartel.ui.theme.AppColors
+import androidx.compose.material3.MaterialTheme
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -38,6 +52,7 @@ sealed class Screen(val route: String) {
     data object Product : Screen("product/{productId}") {
         fun createRoute(productId: String) = "product/$productId"
     }
+    data object AddProduct : Screen("add_product")
 }
 
 @Composable
@@ -46,7 +61,12 @@ fun AppNavigation(
     sectionColors: Map<Category, List<SectionColor>>,
     getItemsByCategory: (String) -> List<InventoryItem>,
     getItemById: (String) -> InventoryItem?,
-    onQuantityChange: (String, Int) -> Unit
+    onQuantityChange: (String, Int) -> Unit,
+    addProductViewModel: AddProductViewModel,
+    isSyncing: Boolean = false,
+    syncResult: String? = null,
+    onSyncClick: () -> Unit = {},
+    onClearSyncResult: () -> Unit = {}
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
@@ -82,7 +102,14 @@ fun AppNavigation(
                     sectionColors = sectionColors,
                     onCategoryClick = { categoryId ->
                         navController.navigate(Screen.Category.createRoute(categoryId))
-                    }
+                    },
+                    onCenterClick = {
+                        navController.navigate(Screen.AddProduct.route)
+                    },
+                    isSyncing = isSyncing,
+                    syncResult = syncResult,
+                    onSyncClick = onSyncClick,
+                    onClearSyncResult = onClearSyncResult
                 )
             }
 
@@ -119,6 +146,13 @@ fun AppNavigation(
                     onBackClick = { navController.popBackStack() }
                 )
             }
+
+            composable(Screen.AddProduct.route) {
+                AddProductScreen(
+                    viewModel = addProductViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
         }
     }
 }
@@ -126,24 +160,71 @@ fun AppNavigation(
 @Composable
 fun HomeScreen(
     sectionColors: Map<Category, List<SectionColor>>,
-    onCategoryClick: (String) -> Unit
+    onCategoryClick: (String) -> Unit,
+    onCenterClick: () -> Unit = {},
+    isSyncing: Boolean = false,
+    syncResult: String? = null,
+    onSyncClick: () -> Unit = {},
+    onClearSyncResult: () -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Despensa del Cuartel",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = AppColors.OnSurface,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
+    val snackbarHostState = remember { SnackbarHostState() }
 
-        RadialWheel(
-            sectionColors = sectionColors,
-            onSectionClick = onCategoryClick
-        )
+    LaunchedEffect(syncResult) {
+        syncResult?.let {
+            snackbarHostState.showSnackbar(it)
+            onClearSyncResult()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Despensa del Cuartel",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            IconButton(
+                onClick = onSyncClick,
+                enabled = !isSyncing,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                if (isSyncing) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.CloudUpload,
+                        contentDescription = "Sincronizar con BD",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            RadialWheel(
+                sectionColors = sectionColors,
+                onSectionClick = onCategoryClick,
+                onCenterClick = onCenterClick
+            )
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) { data ->
+            Snackbar(
+                snackbarData = data,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }

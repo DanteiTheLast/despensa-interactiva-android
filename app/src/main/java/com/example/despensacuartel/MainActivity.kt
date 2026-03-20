@@ -1,5 +1,6 @@
 package com.example.despensacuartel
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,7 +21,10 @@ import com.example.despensacuartel.ui.navigation.AppNavigation
 import com.example.despensacuartel.ui.theme.AppBackground
 import com.example.despensacuartel.ui.theme.AppColors
 import com.example.despensacuartel.ui.theme.DespensaCuartelTheme
+import com.example.despensacuartel.data.repository.InventoryRepository
+import com.example.despensacuartel.ui.viewmodel.AddProductViewModel
 import com.example.despensacuartel.ui.viewmodel.InventoryViewModel
+import kotlinx.coroutines.flow.StateFlow
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,16 +33,22 @@ class MainActivity : ComponentActivity() {
         setContent {
             DespensaCuartelTheme {
                 val viewModel: InventoryViewModel = viewModel(
-                    factory = InventoryViewModel.Factory(useDummyData = true)
+                    factory = InventoryViewModel.Factory(useDummyData = false)
+                )
+                val addProductViewModel: AddProductViewModel = viewModel(
+                    factory = AddProductViewModel.Factory(InventoryRepository())
                 )
                 val uiState by viewModel.uiState.collectAsState()
 
                 PantallaPrincipal(
                     uiState = uiState,
-                    getSectionColors = { viewModel.getSectionColors() },
+                    sectionColors = viewModel.sectionColors,
                     getItemsByCategory = viewModel::getItemsByCategory,
                     getItemById = viewModel::getItemById,
-                    onQuantityChange = viewModel::updateItemQuantity
+                    onQuantityChange = viewModel::updateItemQuantity,
+                    onSyncClick = viewModel::syncToFirestore,
+                    onClearSyncResult = viewModel::clearSyncResult,
+                    addProductViewModel = addProductViewModel
                 )
             }
         }
@@ -48,10 +58,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PantallaPrincipal(
     uiState: com.example.despensacuartel.ui.viewmodel.InventoryUiState,
-    getSectionColors: () -> Map<Category, List<SectionColor>>,
+    sectionColors: StateFlow<Map<Category, List<SectionColor>>>,
     getItemsByCategory: (String) -> List<com.example.despensacuartel.data.model.InventoryItem>,
     getItemById: (String) -> com.example.despensacuartel.data.model.InventoryItem?,
-    onQuantityChange: (String, Int) -> Unit
+    onQuantityChange: (String, Int) -> Unit,
+    onSyncClick: () -> Unit,
+    onClearSyncResult: () -> Unit,
+    addProductViewModel: AddProductViewModel
 ) {
     AppBackground(
         modifier = Modifier.fillMaxSize()
@@ -73,11 +86,17 @@ fun PantallaPrincipal(
                     )
                 }
                 else -> {
+                    val colors by sectionColors.collectAsState()
                     AppNavigation(
-                        sectionColors = getSectionColors(),
+                        sectionColors = colors,
                         getItemsByCategory = getItemsByCategory,
                         getItemById = getItemById,
-                        onQuantityChange = onQuantityChange
+                        onQuantityChange = onQuantityChange,
+                        addProductViewModel = addProductViewModel,
+                        isSyncing = uiState.isSyncing,
+                        syncResult = uiState.syncResult,
+                        onSyncClick = onSyncClick,
+                        onClearSyncResult = onClearSyncResult
                     )
                 }
             }
@@ -85,6 +104,7 @@ fun PantallaPrincipal(
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(
     name = "Pantalla Principal",
     showBackground = true,
@@ -100,7 +120,12 @@ fun MiDespensaPreview() {
             sectionColors = dummyColors,
             getItemsByCategory = { emptyList() },
             getItemById = { null },
-            onQuantityChange = { _, _ -> }
+            onQuantityChange = { _, _ -> },
+            addProductViewModel = AddProductViewModel(InventoryRepository()),
+            isSyncing = false,
+            syncResult = null,
+            onSyncClick = {},
+            onClearSyncResult = {}
         )
     }
 }

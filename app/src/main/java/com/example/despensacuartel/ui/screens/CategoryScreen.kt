@@ -32,6 +32,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +45,7 @@ import com.example.despensacuartel.data.model.Category
 import com.example.despensacuartel.data.model.InventoryItem
 import com.example.despensacuartel.ui.theme.AppBackground
 import com.example.despensacuartel.ui.theme.AppColors
+import com.example.despensacuartel.ui.theme.CategoryIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +56,11 @@ fun CategoryScreen(
     onItemClick: (String) -> Unit,
     onBackClick: () -> Unit
 ) {
-    val titleWithEmoji = if (categoryEmoji.isNotEmpty()) "$categoryEmoji $categoryName" else categoryName
+    val titleWithEmoji by remember(categoryEmoji, categoryName) {
+        derivedStateOf { 
+            if (categoryEmoji.isNotEmpty()) "$categoryEmoji $categoryName" else categoryName 
+        }
+    }
     
     AppBackground(
         modifier = Modifier.fillMaxSize()
@@ -72,17 +80,17 @@ fun CategoryScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Regresar",
-                                tint = AppColors.OnSurface
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = AppColors.Surface,
-                        titleContentColor = AppColors.OnSurface
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             },
-            containerColor = AppColors.Background
+            containerColor = MaterialTheme.colorScheme.background
         ) { paddingValues ->
             Box(
                 modifier = Modifier
@@ -97,7 +105,7 @@ fun CategoryScreen(
                     ) {
                         Text(
                             text = "No hay productos en esta categoría",
-                            color = AppColors.OnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 16.sp
                         )
                     }
@@ -135,7 +143,7 @@ fun ProductCard(
         item.cantidadActual.toFloat() / item.cantidadMaxima
     } else 0f
 
-    val category = Category.fromId(item.categoriaID)
+    val category = remember(item) { Category.fromId(item.categoriaID) }
     val emoji = category?.emoji ?: "📦"
 
     val progressColor = when {
@@ -152,8 +160,12 @@ fun ProductCard(
             .fillMaxWidth()
             .animateContentSize(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = AppColors.CardBackground),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp
+        )
     ) {
         Row(
             modifier = Modifier
@@ -165,13 +177,24 @@ fun ProductCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(AppColors.PrimaryContainer),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = emoji,
-                    fontSize = 24.sp
-                )
+                val categoryNonNull = category
+                val vectorIcon = categoryNonNull?.let { CategoryIcons.getIcon(it) }
+                if (vectorIcon != null && categoryNonNull != null) {
+                    Icon(
+                        imageVector = vectorIcon,
+                        contentDescription = categoryNonNull.displayName,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(
+                        text = emoji,
+                        fontSize = 24.sp
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -181,7 +204,7 @@ fun ProductCard(
                     text = item.nombre,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
-                    color = AppColors.OnSurface
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -196,16 +219,16 @@ fun ProductCard(
                             .height(8.dp)
                             .clip(RoundedCornerShape(4.dp)),
                         color = progressColor,
-                        trackColor = AppColors.ProgressTrack,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
                     )
                     
                     Spacer(modifier = Modifier.width(12.dp))
                     
                     Text(
-                        text = "${item.cantidadActual}/${item.cantidadMaxima}",
+                        text = "${item.cantidadActual}/${item.cantidadMaxima} ${item.unidad}",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = AppColors.OnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -215,7 +238,7 @@ fun ProductCard(
             Text(
                 text = item.unidad,
                 fontSize = 12.sp,
-                color = AppColors.OnSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

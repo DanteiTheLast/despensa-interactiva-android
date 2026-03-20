@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +54,7 @@ import com.example.despensacuartel.data.model.Category
 import com.example.despensacuartel.data.model.InventoryItem
 import com.example.despensacuartel.ui.theme.AppBackground
 import com.example.despensacuartel.ui.theme.AppColors
+import androidx.compose.material3.MaterialTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,8 +69,8 @@ fun ProductDetailScreen(
     }
     val maxQuantity = item?.cantidadMaxima ?: 10
 
-    val category = item?.let { Category.fromId(it.categoriaID) }
-    val emoji = category?.emoji ?: "📦"
+    val category = remember(item) { item?.let { Category.fromId(it.categoriaID) } }
+    val emoji by remember(category) { derivedStateOf { category?.emoji ?: "📦" } }
 
     var minusPressed by remember { mutableStateOf(false) }
     var plusPressed by remember { mutableStateOf(false) }
@@ -113,23 +115,23 @@ fun ProductDetailScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Regresar",
-                                tint = AppColors.OnSurface
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = AppColors.Surface,
-                        titleContentColor = AppColors.OnSurface
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             },
-            containerColor = AppColors.Background,
+            containerColor = MaterialTheme.colorScheme.background,
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState) { data ->
                     Snackbar(
                         snackbarData = data,
-                        containerColor = AppColors.Primary,
-                        contentColor = AppColors.OnPrimary,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                         shape = RoundedCornerShape(12.dp)
                     )
                 }
@@ -148,7 +150,7 @@ fun ProductDetailScreen(
                     ) {
                         Text(
                             text = "Producto no encontrado",
-                            color = AppColors.OnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 16.sp
                         )
                     }
@@ -169,7 +171,7 @@ fun ProductDetailScreen(
                                 modifier = Modifier
                                     .size(120.dp)
                                     .clip(CircleShape)
-                                    .background(AppColors.PrimaryContainer),
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -184,13 +186,13 @@ fun ProductDetailScreen(
                                 text = item.nombre,
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.OnSurface
+                                color = MaterialTheme.colorScheme.onSurface
                             )
 
                             Text(
                                 text = item.unidad,
                                 fontSize = 18.sp,
-                                color = AppColors.OnSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -201,14 +203,14 @@ fun ProductDetailScreen(
                                 text = quantity.toString(),
                                 fontSize = 96.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.OnSurface,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 textAlign = TextAlign.Center
                             )
 
                             Text(
                                 text = "de ${maxQuantity} ${item.unidad}",
                                 fontSize = 18.sp,
-                                color = AppColors.OnSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
                             Spacer(modifier = Modifier.height(32.dp))
@@ -227,8 +229,8 @@ fun ProductDetailScreen(
                                         .scale(minusScale),
                                     shape = CircleShape,
                                     colors = IconButtonDefaults.filledIconButtonColors(
-                                        containerColor = AppColors.ButtonNegative,
-                                        contentColor = AppColors.OnPrimary
+                                        containerColor = MaterialTheme.colorScheme.error,
+                                        contentColor = MaterialTheme.colorScheme.onError
                                     ),
                                     enabled = quantity > 0
                                 ) {
@@ -249,8 +251,8 @@ fun ProductDetailScreen(
                                         .scale(plusScale),
                                     shape = CircleShape,
                                     colors = IconButtonDefaults.filledIconButtonColors(
-                                        containerColor = AppColors.ButtonPositive,
-                                        contentColor = AppColors.OnPrimary
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
                                     ),
                                     enabled = quantity < maxQuantity
                                 ) {
@@ -277,14 +279,14 @@ fun ProductDetailScreen(
                                 .scale(saveScale),
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = AppColors.Primary
+                                containerColor = MaterialTheme.colorScheme.primary
                             )
                         ) {
                             Text(
                                 text = "Guardar",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = AppColors.OnPrimary
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                     }

@@ -5,38 +5,56 @@ import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
     primary = AppColors.Primary,
-    primaryContainer = AppColors.PrimaryContainer,
     onPrimary = AppColors.OnPrimary,
+    primaryContainer = AppColors.PrimaryContainer,
+    onPrimaryContainer = AppColors.OnPrimaryContainer,
+    secondary = AppColors.Secondary,
+    onSecondary = AppColors.OnSecondary,
+    secondaryContainer = AppColors.SecondaryContainer,
+    onSecondaryContainer = AppColors.OnSecondaryContainer,
     background = AppColors.Background,
-    surface = AppColors.Surface,
     onBackground = AppColors.OnSurface,
+    surface = AppColors.Surface,
     onSurface = AppColors.OnSurface,
-    surfaceVariant = AppColors.Surface,
-    onSurfaceVariant = AppColors.OnSurfaceVariant
+    surfaceVariant = AppColors.SurfaceVariant,
+    onSurfaceVariant = AppColors.OnSurfaceVariant,
+    outline = AppColors.Outline,
+    outlineVariant = AppColors.OutlineVariant,
+    error = AppColors.Error,
+    onError = AppColors.OnError,
+    errorContainer = AppColors.ErrorContainer
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AppColors.Primary,
-    primaryContainer = AppColors.PrimaryContainer,
-    onPrimary = AppColors.OnPrimary,
-    background = AppColors.OnSurface,
-    surface = AppColors.OnSurface,
-    onBackground = AppColors.Background,
-    onSurface = AppColors.Background,
-    onSurfaceVariant = AppColors.Background
+    primary = AppColors.DarkPrimary,
+    onPrimary = AppColors.DarkOnPrimary,
+    primaryContainer = AppColors.DarkPrimaryContainer,
+    onPrimaryContainer = AppColors.DarkOnPrimaryContainer,
+    secondary = AppColors.DarkSecondary,
+    onSecondary = AppColors.DarkOnSecondary,
+    secondaryContainer = AppColors.DarkSecondaryContainer,
+    onSecondaryContainer = AppColors.DarkOnSecondaryContainer,
+    background = AppColors.DarkBackground,
+    onBackground = AppColors.DarkOnSurface,
+    surface = AppColors.DarkSurface,
+    onSurface = AppColors.DarkOnSurface,
+    surfaceVariant = AppColors.DarkSurfaceVariant,
+    onSurfaceVariant = AppColors.DarkOnSurfaceVariant,
+    outline = AppColors.DarkOutline,
+    outlineVariant = AppColors.DarkOutlineVariant,
+    error = AppColors.DarkError,
+    onError = AppColors.DarkOnError,
+    errorContainer = AppColors.DarkErrorContainer
 )
 
 @Composable
@@ -47,8 +65,7 @@ fun DespensaCuartelTheme(
 ) {
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (darkTheme) darkColorScheme() else LightColorScheme
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
@@ -58,7 +75,7 @@ fun DespensaCuartelTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
+            window.statusBarColor = colorScheme.surface.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }

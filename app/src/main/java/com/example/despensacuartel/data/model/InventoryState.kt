@@ -9,6 +9,7 @@ data class InventoryItem(
     val cantidadActual: Int = 0,
     val cantidadMaxima: Int = 10,
     val unidad: String = "",
+    val tipoIcon: String = "default",
     val actualizadoPor: String = "",
     val fechaActualizacion: Long = System.currentTimeMillis()
 ) {
@@ -39,11 +40,44 @@ sealed class SectionColor {
     data object Full : SectionColor()
 
     fun toColors(): List<Color> = when (this) {
-        is SectionColor.Empty -> listOf(Color(0xFF3D3D3D), Color(0xFF3D3D3D), Color(0xFF3D3D3D), Color(0xFF3D3D3D))
-        is SectionColor.VeryLow -> listOf(Color(0xFFE24A4A), Color(0xFFE24A4A), Color(0xFFE24A4A), Color(0xFFE24A4A))
-        is SectionColor.Low -> listOf(Color(0xFFFF9800), Color(0xFFFF9800), Color(0xFFFF9800), Color(0xFFE24A4A))
-        is SectionColor.Medium -> listOf(Color(0xFFFFEB3B), Color(0xFFFFEB3B), Color(0xFFFF9800), Color(0xFFE24A4A))
-        is SectionColor.Full -> listOf(Color(0xFF4AE24A), Color(0xFF4AE24A), Color(0xFF4AE24A), Color(0xFF4AE24A))
+        is SectionColor.Empty -> listOf(
+            Color(0xFF4B5563),  // Gris elegante
+            Color(0xFF6B7280),
+            Color(0xFF4B5563),
+            Color(0xFF4B5563)
+        )
+        is SectionColor.VeryLow -> listOf(
+            Color(0xFFEF4444),  // Rojo coral vibrante
+            Color(0xFFDC2626),
+            Color(0xFFEF4444),
+            Color(0xFFEF4444)
+        )
+        is SectionColor.Low -> listOf(
+            Color(0xFFF97316),  // Naranja vibrante
+            Color(0xFFEA580C),
+            Color(0xFFEF4444),  // Rojo en la punta
+            Color(0xFFF97316)
+        )
+        is SectionColor.Medium -> listOf(
+            Color(0xFFF59E0B),  // Amber cálido
+            Color(0xFFD97706),
+            Color(0xFFF97316), // Naranja en la punta
+            Color(0xFFF59E0B)
+        )
+        is SectionColor.Full -> listOf(
+            Color(0xFF10B981),  // Emerald brillante
+            Color(0xFF059669),
+            Color(0xFF10B981),
+            Color(0xFF10B981)
+        )
+    }
+
+    fun toPrimaryColor(): Color = when (this) {
+        is SectionColor.Empty -> Color(0xFF4B5563)
+        is SectionColor.VeryLow -> Color(0xFFEF4444)
+        is SectionColor.Low -> Color(0xFFF97316)
+        is SectionColor.Medium -> Color(0xFFF59E0B)
+        is SectionColor.Full -> Color(0xFF10B981)
     }
 
     companion object {
