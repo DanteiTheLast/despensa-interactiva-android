@@ -69,6 +69,10 @@ import com.example.despensacuartel.ui.theme.ProductIcons
 import com.example.despensacuartel.ui.viewmodel.AddProductViewModel
 import com.example.despensacuartel.ui.viewmodel.SaveResult
 
+object Units {
+    val all = listOf("pcs", "kg", "g", "litros", "ml")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProductScreen(
@@ -123,38 +127,10 @@ fun AddProductScreen(
                     singleLine = true
                 )
 
-                var categoriaExpanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = categoriaExpanded,
-                    onExpandedChange = { categoriaExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = Category.fromId(formState.categoriaID)?.displayName
-                            ?: Category.fromId(formState.categoriaID)?.emoji?.let { "$it ${Category.fromId(formState.categoriaID)?.displayName}" }
-                            ?: "Selecciona categoría",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Categoría") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoriaExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                    )
-                    ExposedDropdownMenu(
-                        expanded = categoriaExpanded,
-                        onDismissRequest = { categoriaExpanded = false }
-                    ) {
-                        Category.entries.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text("${category.emoji} ${category.displayName}") },
-                                onClick = {
-                                    viewModel.updateCategoria(category.id)
-                                    categoriaExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
+                CategoryDropdown(
+                    selectedCategoryId = formState.categoriaID,
+                    onCategorySelected = { viewModel.updateCategoria(it) }
+                )
 
                 OutlinedTextField(
                     value = formState.cantidadMaxima,
@@ -167,37 +143,12 @@ fun AddProductScreen(
                     singleLine = true
                 )
 
-                val unidades = listOf("pcs", "kg", "g", "litros", "ml")
-                var unidadExpanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = unidadExpanded,
-                    onExpandedChange = { unidadExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = formState.unidad,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Unidad") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = unidadExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                    )
-                    ExposedDropdownMenu(
-                        expanded = unidadExpanded,
-                        onDismissRequest = { unidadExpanded = false }
-                    ) {
-                        unidades.forEach { unidad ->
-                            DropdownMenuItem(
-                                text = { Text(unidad) },
-                                onClick = {
-                                    viewModel.updateUnidad(unidad)
-                                    unidadExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
+                SimpleDropdown(
+                    label = "Unidad",
+                    selectedValue = formState.unidad,
+                    options = Units.all,
+                    onOptionSelected = { viewModel.updateUnidad(it) }
+                )
 
                 Text(
                     text = "Selecciona un ícono",
@@ -267,6 +218,88 @@ fun AddProductScreen(
                     }
                 }
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryDropdown(
+    selectedCategoryId: String,
+    onCategorySelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedCategory = remember(selectedCategoryId) { Category.fromId(selectedCategoryId) }
+    val displayText = selectedCategory?.let { "${it.emoji} ${it.displayName}" } ?: "Selecciona categoría"
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        OutlinedTextField(
+            value = displayText,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Categoría") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            Category.entries.forEach { category ->
+                DropdownMenuItem(
+                    text = { Text("${category.emoji} ${category.displayName}") },
+                    onClick = {
+                        onCategorySelected(category.id)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SimpleDropdown(
+    label: String,
+    selectedValue: String,
+    options: List<String>,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        OutlinedTextField(
+            value = selectedValue,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onOptionSelected(option)
+                        expanded = false
+                    }
+                )
+            }
         }
     }
 }

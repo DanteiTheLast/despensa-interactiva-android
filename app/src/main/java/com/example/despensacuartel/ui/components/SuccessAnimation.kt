@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +31,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlin.random.Random
+import com.example.despensacuartel.ui.theme.AppColors
 
 data class ConfettiParticle(
     val x: Float,
@@ -48,6 +50,21 @@ fun SuccessAnimation(
 ) {
     if (!isVisible) return
 
+    val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val successColor = if (isDarkTheme) AppColors.SuccessGreenDark else AppColors.SuccessGreen
+    val errorColor = if (isDarkTheme) AppColors.ErrorRedDark else AppColors.ErrorRed
+    val baseColor = if (isSuccess) successColor else errorColor
+    val backgroundColor = baseColor.copy(alpha = 0.15f)
+
+    val confettiColors = listOf(
+        AppColors.SuccessGreen,
+        AppColors.StatusMedium,
+        AppColors.Primary,
+        AppColors.Secondary,
+        AppColors.SuccessGreenDark,
+        AppColors.DarkStatusMedium
+    )
+
     val scale = remember { Animatable(0f) }
     val confettiProgress = remember { Animatable(0f) }
     val iconScale = remember { Animatable(0f) }
@@ -57,14 +74,7 @@ fun SuccessAnimation(
             ConfettiParticle(
                 x = Random.nextFloat(),
                 y = -Random.nextFloat() * 0.5f,
-                color = listOf(
-                    Color(0xFF10B981),
-                    Color(0xFFF59E0B),
-                    Color(0xFF3B82F6),
-                    Color(0xFFEC4899),
-                    Color(0xFF8B5CF6),
-                    Color(0xFF34D399)
-                ).random(),
+                color = confettiColors.random(),
                 size = Random.nextFloat() * 10 + 5,
                 velocityX = (Random.nextFloat() - 0.5f) * 0.8f,
                 velocityY = Random.nextFloat() * 0.6f + 0.4f
@@ -98,10 +108,7 @@ fun SuccessAnimation(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                if (isSuccess) Color(0xFF10B981).copy(alpha = 0.15f)
-                else Color(0xFFEF4444).copy(alpha = 0.15f)
-            ),
+            .background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -125,7 +132,7 @@ fun SuccessAnimation(
                 .size(140.dp)
                 .scale(if (isSuccess) scale.value * iconScale.value else scale.value * pulseScale)
                 .clip(CircleShape)
-                .background(if (isSuccess) Color(0xFF10B981) else Color(0xFFEF4444)),
+                .background(baseColor),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -136,4 +143,11 @@ fun SuccessAnimation(
             )
         }
     }
+}
+
+private fun Color.luminance(): Float {
+    val r = red
+    val g = green
+    val b = blue
+    return 0.299f * r + 0.587f * g + 0.114f * b
 }

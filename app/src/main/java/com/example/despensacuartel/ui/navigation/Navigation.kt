@@ -9,19 +9,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudUpload
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +31,6 @@ import com.example.despensacuartel.ui.screens.AddProductScreen
 import com.example.despensacuartel.ui.screens.CategoryScreen
 import com.example.despensacuartel.ui.screens.ProductDetailScreen
 import com.example.despensacuartel.ui.viewmodel.AddProductViewModel
-import com.example.despensacuartel.ui.theme.AppColors
 import androidx.compose.material3.MaterialTheme
 
 sealed class Screen(val route: String) {
@@ -62,11 +51,7 @@ fun AppNavigation(
     getItemsByCategory: (String) -> List<InventoryItem>,
     getItemById: (String) -> InventoryItem?,
     onQuantityChange: (String, Int) -> Unit,
-    addProductViewModel: AddProductViewModel,
-    isSyncing: Boolean = false,
-    syncResult: String? = null,
-    onSyncClick: () -> Unit = {},
-    onClearSyncResult: () -> Unit = {}
+    addProductViewModel: AddProductViewModel
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
@@ -105,11 +90,7 @@ fun AppNavigation(
                     },
                     onCenterClick = {
                         navController.navigate(Screen.AddProduct.route)
-                    },
-                    isSyncing = isSyncing,
-                    syncResult = syncResult,
-                    onSyncClick = onSyncClick,
-                    onClearSyncResult = onClearSyncResult
+                    }
                 )
             }
 
@@ -161,21 +142,8 @@ fun AppNavigation(
 fun HomeScreen(
     sectionColors: Map<Category, List<SectionColor>>,
     onCategoryClick: (String) -> Unit,
-    onCenterClick: () -> Unit = {},
-    isSyncing: Boolean = false,
-    syncResult: String? = null,
-    onSyncClick: () -> Unit = {},
-    onClearSyncResult: () -> Unit = {}
+    onCenterClick: () -> Unit = {}
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(syncResult) {
-        syncResult?.let {
-            snackbarHostState.showSnackbar(it)
-            onClearSyncResult()
-        }
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -190,40 +158,10 @@ fun HomeScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            IconButton(
-                onClick = onSyncClick,
-                enabled = !isSyncing,
-                modifier = Modifier.padding(bottom = 16.dp)
-            ) {
-                if (isSyncing) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.CloudUpload,
-                        contentDescription = "Sincronizar con BD",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
             RadialWheel(
                 sectionColors = sectionColors,
                 onSectionClick = onCategoryClick,
                 onCenterClick = onCenterClick
-            )
-        }
-
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) { data ->
-            Snackbar(
-                snackbarData = data,
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
             )
         }
     }

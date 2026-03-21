@@ -29,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -43,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.despensacuartel.data.model.Category
 import com.example.despensacuartel.data.model.InventoryItem
-import com.example.despensacuartel.ui.theme.AppBackground
 import com.example.despensacuartel.ui.theme.AppColors
 import com.example.despensacuartel.ui.theme.CategoryIcons
 
@@ -62,8 +62,9 @@ fun CategoryScreen(
         }
     }
     
-    AppBackground(
-        modifier = Modifier.fillMaxSize()
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
         Scaffold(
             topBar = {
@@ -146,12 +147,14 @@ fun ProductCard(
     val category = remember(item) { Category.fromId(item.categoriaID) }
     val emoji = category?.emoji ?: "📦"
 
-    val progressColor = when {
-        fillPercentage >= 0.7f -> AppColors.StatusFull
-        fillPercentage >= 0.4f -> AppColors.StatusMedium
-        fillPercentage >= 0.2f -> AppColors.StatusLow
-        fillPercentage > 0f -> AppColors.StatusVeryLow
-        else -> AppColors.StatusEmpty
+    val progressColor = remember(item.cantidadActual, item.cantidadMaxima) {
+        when {
+            fillPercentage >= 0.7f -> AppColors.StatusFull
+            fillPercentage >= 0.4f -> AppColors.StatusMedium
+            fillPercentage >= 0.2f -> AppColors.StatusLow
+            fillPercentage > 0f -> AppColors.StatusVeryLow
+            else -> AppColors.StatusEmpty
+        }
     }
 
     Card(
