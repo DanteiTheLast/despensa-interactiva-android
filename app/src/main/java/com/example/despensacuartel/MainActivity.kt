@@ -7,6 +7,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -18,7 +20,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.despensacuartel.data.model.Category
 import com.example.despensacuartel.data.model.SectionColor
 import com.example.despensacuartel.ui.navigation.AppNavigation
-import com.example.despensacuartel.ui.theme.AppBackground
 import com.example.despensacuartel.ui.theme.AppColors
 import com.example.despensacuartel.ui.theme.DespensaCuartelTheme
 import com.example.despensacuartel.data.repository.InventoryRepository
@@ -46,8 +47,6 @@ class MainActivity : ComponentActivity() {
                     getItemsByCategory = viewModel::getItemsByCategory,
                     getItemById = viewModel::getItemById,
                     onQuantityChange = viewModel::updateItemQuantity,
-                    onSyncClick = viewModel::syncToFirestore,
-                    onClearSyncResult = viewModel::clearSyncResult,
                     addProductViewModel = addProductViewModel
                 )
             }
@@ -62,12 +61,11 @@ fun PantallaPrincipal(
     getItemsByCategory: (String) -> List<com.example.despensacuartel.data.model.InventoryItem>,
     getItemById: (String) -> com.example.despensacuartel.data.model.InventoryItem?,
     onQuantityChange: (String, Int) -> Unit,
-    onSyncClick: () -> Unit,
-    onClearSyncResult: () -> Unit,
     addProductViewModel: AddProductViewModel
 ) {
-    AppBackground(
-        modifier = Modifier.fillMaxSize()
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -92,11 +90,7 @@ fun PantallaPrincipal(
                         getItemsByCategory = getItemsByCategory,
                         getItemById = getItemById,
                         onQuantityChange = onQuantityChange,
-                        addProductViewModel = addProductViewModel,
-                        isSyncing = uiState.isSyncing,
-                        syncResult = uiState.syncResult,
-                        onSyncClick = onSyncClick,
-                        onClearSyncResult = onClearSyncResult
+                        addProductViewModel = addProductViewModel
                     )
                 }
             }
@@ -121,11 +115,7 @@ fun MiDespensaPreview() {
             getItemsByCategory = { emptyList() },
             getItemById = { null },
             onQuantityChange = { _, _ -> },
-            addProductViewModel = AddProductViewModel(InventoryRepository()),
-            isSyncing = false,
-            syncResult = null,
-            onSyncClick = {},
-            onClearSyncResult = {}
+            addProductViewModel = AddProductViewModel(InventoryRepository())
         )
     }
 }

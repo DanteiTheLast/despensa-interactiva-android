@@ -4,6 +4,7 @@ import com.example.despensacuartel.data.model.Category
 import com.example.despensacuartel.data.model.CategorySummary
 import com.example.despensacuartel.data.model.InventoryItem
 import com.example.despensacuartel.data.model.ProductCatalog
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
@@ -13,11 +14,26 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
+private fun DocumentSnapshot.toInventoryItem(): InventoryItem? = try {
+    Log.d("FIRESTORE", "Doc: $id -> nombre=${getString("nombre")}, categoriaID=${getString("categoriaID")}, cantidadActual=${getLong("cantidadActual")}")
+    InventoryItem(
+        id = id,
+        nombre = getString("nombre") ?: "",
+        categoriaID = getString("categoriaID") ?: "",
+        cantidadActual = getLong("cantidadActual")?.toInt() ?: 0,
+        cantidadMaxima = getLong("cantidadMaxima")?.toInt() ?: 10,
+        unidad = getString("unidad") ?: "",
+        actualizadoPor = getString("actualizadoPor") ?: "",
+        fechaActualizacion = getLong("fechaActualizacion") ?: System.currentTimeMillis()
+    )
+} catch (e: Exception) {
+    Log.e("FIRESTORE", "Error parsing doc: ${e.message}")
+    null
+}
+
 class InventoryRepository(
     private val useDummyData: Boolean = false
 ) {
-    // Lazy initialization of FirebaseFirestore to prevent crashes during Compose Previews
-    // where FirebaseApp is not initialized.
     private val firestore by lazy { FirebaseFirestore.getInstance() }
     private val collectionRef by lazy { firestore.collection("inventario") }
 
@@ -39,24 +55,7 @@ class InventoryRepository(
                     return@addSnapshotListener
                 }
 
-                val items = snapshot?.documents?.mapNotNull { doc ->
-                    try {
-                        Log.d("FIRESTORE", "Doc: ${doc.id} -> nombre=${doc.getString("nombre")}, categoriaID=${doc.getString("categoriaID")}, cantidadActual=${doc.getLong("cantidadActual")}")
-                        InventoryItem(
-                            id = doc.id,
-                            nombre = doc.getString("nombre") ?: "",
-                            categoriaID = doc.getString("categoriaID") ?: "",
-                            cantidadActual = doc.getLong("cantidadActual")?.toInt() ?: 0,
-                            cantidadMaxima = doc.getLong("cantidadMaxima")?.toInt() ?: 10,
-                            unidad = doc.getString("unidad") ?: "",
-                            actualizadoPor = doc.getString("actualizadoPor") ?: "",
-                            fechaActualizacion = doc.getLong("fechaActualizacion") ?: System.currentTimeMillis()
-                        )
-                    } catch (e: Exception) {
-                        Log.e("FIRESTORE", "Error parsing doc: ${e.message}")
-                        null
-                    }
-                } ?: emptyList()
+                val items = snapshot?.documents?.mapNotNull { doc -> doc.toInventoryItem() } ?: emptyList()
 
                 Log.d("FIRESTORE", "Total items: ${items.size}")
                 trySend(items)
@@ -70,22 +69,7 @@ class InventoryRepository(
     } else {
         try {
             val snapshot = collectionRef.get().await()
-            snapshot.documents.mapNotNull { doc ->
-                try {
-                    InventoryItem(
-                        id = doc.id,
-                        nombre = doc.getString("nombre") ?: "",
-                        categoriaID = doc.getString("categoriaID") ?: "",
-                        cantidadActual = doc.getLong("cantidadActual")?.toInt() ?: 0,
-                        cantidadMaxima = doc.getLong("cantidadMaxima")?.toInt() ?: 10,
-                        unidad = doc.getString("unidad") ?: "",
-                        actualizadoPor = doc.getString("actualizadoPor") ?: "",
-                        fechaActualizacion = doc.getLong("fechaActualizacion") ?: System.currentTimeMillis()
-                    )
-                } catch (e: Exception) {
-                    null
-                }
-            }
+            snapshot.documents.mapNotNull { doc -> doc.toInventoryItem() }
         } catch (e: Exception) {
             emptyList()
         }
@@ -101,35 +85,20 @@ class InventoryRepository(
     private fun getDummyData(): List<InventoryItem> {
         val now = System.currentTimeMillis()
         return listOf(
-            // Frutas (Top - 0°)
             InventoryItem("manzana", "Manzana", "frutas", 8, 10, "pieza", "default", "test_device", now),
             InventoryItem("platano", "Plátano", "frutas", 6, 10, "pieza", "default", "test_device", now),
             InventoryItem("naranja", "Naranja", "frutas", 10, 10, "pieza", "default", "test_device", now),
-
-            // Carnes (Top-Right - 45°)
             InventoryItem("pollo", "Pollo", "carnes", 2, 5, "kg", "default", "test_device", now),
             InventoryItem("res", "Res", "carnes", 3, 5, "kg", "default", "test_device", now),
-
-            // Pan (Right - 90°)
             InventoryItem("pan_blanco", "Pan Blanco", "pan", 1, 8, "pieza", "default", "test_device", now),
             InventoryItem("pan_integral", "Pan Integral", "pan", 4, 8, "pieza", "default", "test_device", now),
-
-            // Café (Bottom-Right - 135°)
             InventoryItem("cafe_negro", "Café Negro", "cafe", 1, 3, "paquete", "default", "test_device", now),
-
-            // Lácteos (Bottom - 180°)
             InventoryItem("leche", "Leche", "lacteos", 3, 6, "litro", "default", "test_device", now),
             InventoryItem("yogur", "Yogur", "lacteos", 5, 10, "pieza", "default", "test_device", now),
             InventoryItem("queso", "Queso", "lacteos", 0, 3, "kg", "default", "test_device", now),
-
-            // Medicamentos (Bottom-Left - 225°)
             InventoryItem("paracetamol", "Paracetamol", "medicamentos", 2, 10, "pieza", "default", "test_device", now),
-
-            // Cerveza (Left - 270°)
             InventoryItem("cerveza_lager", "Cerveza Lager", "cerveza", 12, 24, "botella", "default", "test_device", now),
             InventoryItem("cerveza_amber", "Cerveza Amber", "cerveza", 6, 12, "botella", "default", "test_device", now),
-
-            // Verduras (Top-Left - 315°)
             InventoryItem("lechuga", "Lechuga", "verduras", 2, 5, "pieza", "default", "test_device", now),
             InventoryItem("tomate", "Tomate", "verduras", 4, 10, "pieza", "default", "test_device", now),
             InventoryItem("zanahoria", "Zanahoria", "verduras", 0, 8, "pieza", "default", "test_device", now)
