@@ -1,16 +1,9 @@
 package com.example.despensacuartel.ui.theme
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BakeryDining
-import androidx.compose.material.icons.filled.Coffee
-import androidx.compose.material.icons.filled.Eco
-import androidx.compose.material.icons.filled.Grass
-import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Medication
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.SportsBar
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.despensacuartel.data.model.Category
 
 data class ProductIconItem(
     val id: String,
@@ -20,62 +13,39 @@ data class ProductIconItem(
 )
 
 object ProductIcons {
-    val availableIcons: List<ProductIconItem> = listOf(
-        ProductIconItem(
-            id = "eco",
-            emoji = "🌿",
-            vector = Icons.Default.Eco,
-            displayName = "Frutas"
-        ),
-        ProductIconItem(
-            id = "restaurant",
-            emoji = "🍖",
-            vector = Icons.Default.Restaurant,
-            displayName = "Carnes"
-        ),
-        ProductIconItem(
-            id = "bakery",
-            emoji = "🍞",
-            vector = Icons.Default.BakeryDining,
-            displayName = "Pan"
-        ),
-        ProductIconItem(
-            id = "coffee",
-            emoji = "☕",
-            vector = Icons.Default.Coffee,
-            displayName = "Café"
-        ),
-        ProductIconItem(
-            id = "drink",
-            emoji = "🥛",
-            vector = Icons.Default.LocalDrink,
-            displayName = "Lácteos"
-        ),
-        ProductIconItem(
-            id = "medication",
-            emoji = "💊",
-            vector = Icons.Default.Medication,
-            displayName = "Medicinas"
-        ),
-        ProductIconItem(
-            id = "beer",
-            emoji = "🍺",
-            vector = Icons.Default.SportsBar,
-            displayName = "Cerveza"
-        ),
-        ProductIconItem(
-            id = "grass",
-            emoji = "🌱",
-            vector = Icons.Default.Grass,
-            displayName = "Verduras"
-        ),
-        ProductIconItem(
-            id = "canned",
-            emoji = "🥫",
-            vector = Icons.Default.Inventory2,
-            displayName = "Enlatados"
-        )
+    private val categoryIconIds: Map<Category, String> = mapOf(
+        Category.FRUTAS to "frutas",
+        Category.CARNES to "carnes",
+        Category.PAN to "pan",
+        Category.CAFE to "cafe",
+        Category.LACTEOS to "lacteos",
+        Category.MEDICAMENTOS to "medicamentos",
+        Category.CERVEZA to "cerveza",
+        Category.VERDURAS to "verduras"
     )
+
+    val availableIcons: List<ProductIconItem> = buildList {
+        Category.entries.forEach { category ->
+            CategoryIcons.getIcon(category)?.let { vector ->
+                add(
+                    ProductIconItem(
+                        id = categoryIconIds[category] ?: category.id,
+                        emoji = category.emoji,
+                        vector = vector,
+                        displayName = category.displayName
+                    )
+                )
+            }
+        }
+        add(
+            ProductIconItem(
+                id = "canned",
+                emoji = "🥫",
+                vector = Icons.Default.Inventory2,
+                displayName = "Enlatados"
+            )
+        )
+    }
 
     private val iconsById: Map<String, ProductIconItem> = availableIcons.associateBy { it.id }
 

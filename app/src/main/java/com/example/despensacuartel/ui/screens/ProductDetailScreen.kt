@@ -3,7 +3,6 @@ package com.example.despensacuartel.ui.screens
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +34,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -52,9 +52,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.despensacuartel.data.model.Category
 import com.example.despensacuartel.data.model.InventoryItem
-import com.example.despensacuartel.ui.theme.AppBackground
 import com.example.despensacuartel.ui.theme.AppColors
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,6 +75,31 @@ fun ProductDetailScreen(
     var minusPressed by remember { mutableStateOf(false) }
     var plusPressed by remember { mutableStateOf(false) }
     var savePressed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(minusPressed) {
+        if (minusPressed) {
+            kotlinx.coroutines.delay(100)
+            minusPressed = false
+        }
+    }
+    LaunchedEffect(plusPressed) {
+        if (plusPressed) {
+            kotlinx.coroutines.delay(100)
+            plusPressed = false
+        }
+    }
+    LaunchedEffect(savePressed) {
+        if (savePressed) {
+            kotlinx.coroutines.delay(100)
+            savePressed = false
+        }
+    }
+
+    LaunchedEffect(item?.cantidadActual) {
+        item?.cantidadActual?.let { newQuantity ->
+            quantity = newQuantity
+        }
+    }
 
     val minusScale by animateFloatAsState(
         targetValue = if (minusPressed) 0.9f else 1f,
@@ -97,8 +122,9 @@ fun ProductDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    AppBackground(
-        modifier = Modifier.fillMaxSize()
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
         Scaffold(
             topBar = {

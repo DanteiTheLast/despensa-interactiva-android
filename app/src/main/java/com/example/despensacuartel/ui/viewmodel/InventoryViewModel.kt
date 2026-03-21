@@ -44,7 +44,7 @@ class InventoryViewModel(
                 val color = summary?.sectionColor ?: SectionColor.Empty
                 listOf(color, color, color, color)
             }
-        }.stateIn(viewModelScope, SharingStarted.Lazily, initialSectionColors)
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, initialSectionColors)
 
     init {
         loadInventory()
